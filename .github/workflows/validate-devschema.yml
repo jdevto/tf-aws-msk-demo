@@ -1,0 +1,26 @@
+name: validate-devschema
+
+on:
+  pull_request:
+    paths:
+      - '**/devcontainer.json'
+  push:
+    branches:
+      - main
+    paths:
+      - '**/devcontainer.json'
+
+jobs:
+  validate-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate Devcontainer Schema
+        uses: actionsforge/actions-validate-devschema@v1
+        with:
+          schema: "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json"
+          data: ".devcontainer/devcontainer.json"
+          verbose: false
+          python-version: "3.13"

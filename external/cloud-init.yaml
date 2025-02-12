@@ -1,0 +1,8 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - java-11-amazon-corretto
+  - awscli
+runcmd:
+  - bash -c "curl -fsSL https://raw.githubusercontent.com/jdevto/cli-tools/refs/heads/main/scripts/install_kafka.sh | bash -s -- install"
