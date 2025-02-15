@@ -2,7 +2,58 @@
 package_update: true
 package_upgrade: true
 packages:
-  - java-11-amazon-corretto
+  - java-11-amazon-corretto-devel
   - awscli
+
+write_files:
+  - path: /etc/update-motd.d/99-kafka-motd
+    content: |
+      #!/bin/bash
+      echo "Kafka CLI is ready! Use:"
+      echo ""
+      echo "  manage-kafka topic list -c CLUSTER_ARN"
+      echo "  manage-kafka message produce -c CLUSTER_ARN -t my-topic"
+      echo "  manage-kafka consumer describe-group -c CLUSTER_ARN -g my-group"
+      echo ""
+      echo "  install-kafka  # Install Kafka"
+      echo "  setup-msk-iam-auth  # Setup MSK IAM Authentication"
+      echo ""
+    permissions: '0755'
+
+  - path: /etc/profile.d/kafka_aliases.sh
+    content: |
+      # Define functions to allow both direct and sudo execution
+      install-kafka() { /usr/local/bin/install-kafka "$@"; }
+      setup-msk-iam-auth() { /usr/local/bin/setup-msk-iam-auth "$@"; }
+      manage-kafka() { /usr/local/bin/manage-kafka "$@"; }
+
+      export -f install-kafka
+      export -f setup-msk-iam-auth
+      export -f manage-kafka
+
+      alias install-kafka="install-kafka"
+      alias setup-msk-iam-auth="setup-msk-iam-auth"
+      alias manage-kafka="manage-kafka"
+    permissions: '0755'
+
+  - path: /usr/local/bin/install-kafka
+    content: |
+      #!/bin/bash
+      exec bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/install_kafka.sh) "$@"
+    permissions: '0755'
+
+  - path: /usr/local/bin/setup-msk-iam-auth
+    content: |
+      #!/bin/bash
+      exec bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/setup_msk_iam_auth.sh) "$@"
+    permissions: '0755'
+
+  - path: /usr/local/bin/manage-kafka
+    content: |
+      #!/bin/bash
+      exec bash <(curl -s https://raw.githubusercontent.com/jdevto/cli-tools/main/scripts/manage_kafka.sh) "$@"
+    permissions: '0755'
+
 runcmd:
-  - bash -c "curl -fsSL https://raw.githubusercontent.com/jdevto/cli-tools/refs/heads/main/scripts/install_kafka.sh | bash -s -- install"
+  - /usr/local/bin/install-kafka
+  - /usr/local/bin/setup-msk-iam-auth
